@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>あなたの推し活について教えてください</title>
+<style>
+  :root{
+    --bg1:#fde8f3; --bg2:#e9e6ff; --bg3:#e0f3ff;
+    --card:#ffffff; --ink:#3a2a4d; --muted:#8a7d99;
+    --brand:#e85a9c; --brand-d:#cf3f84; --accent:#7c6cf0;
+    --line:#f0e6f2; --soft:#fdeef6; --ok:#22b07a;
+    --shadow:0 18px 40px rgba(180,90,150,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2) 50%,var(--bg3));
+    background-attachment:fixed;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px 16px; min-height:100vh;
+  }
+  .stage{width:100%; max-width:560px}
+
+  /* top progress */
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:16px}
+  .topbar .count{font-size:13px; color:var(--muted); white-space:nowrap; font-weight:600}
+  .track{flex:1; height:10px; background:rgba(255,255,255,.65); border-radius:99px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.05)}
+  .track > i{display:block; height:100%; width:0; border-radius:99px;
+    background:linear-gradient(90deg,var(--accent),var(--brand)); transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+  .card{
+    background:var(--card); border-radius:24px; padding:34px 30px 28px;
+    box-shadow:var(--shadow); position:relative; min-height:300px;
+    display:flex; flex-direction:column;
+  }
+  /* slide animation */
+  .card.anim-in{animation:slideIn .42s cubic-bezier(.2,.8,.2,1)}
+  .card.anim-out{animation:slideOut .28s ease forwards}
+  @keyframes slideIn{from{opacity:0; transform:translateY(22px) scale(.98)} to{opacity:1; transform:none}}
+  @keyframes slideOut{to{opacity:0; transform:translateY(-16px) scale(.98)}}
+
+  .step{font-size:13px; font-weight:700; color:var(--brand); margin-bottom:10px; letter-spacing:.02em}
+  .step .emoji{margin-right:4px}
+  h2.qt{font-size:21px; line-height:1.55; margin:0 0 6px; font-weight:800}
+  .req{display:inline-block; font-size:11px; color:#fff; background:var(--brand); border-radius:6px; padding:2px 7px; margin-left:8px; vertical-align:middle; font-weight:700}
+  .hint{font-size:14px; color:var(--muted); margin:6px 0 0; line-height:1.6}
+  .body{flex:1; margin-top:22px}
+
+  /* inputs */
+  .name-row{display:flex; gap:12px}
+  .name-row > div{flex:1}
+  .name-row label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:600}
+  input[type=text], textarea{
+    width:100%; padding:14px 16px; border:2px solid var(--line); border-radius:14px;
+    font:inherit; color:var(--ink); background:#fffafd; transition:.18s;
+  }
+  textarea{resize:vertical; min-height:120px; line-height:1.7}
+  input::placeholder, textarea::placeholder{color:#c9bcd0}
+  input:focus, textarea:focus{outline:none; border-color:var(--brand); background:#fff; box-shadow:0 0 0 4px rgba(232,90,156,.13)}
+
+  .choices{display:flex; flex-direction:column; gap:12px}
+  .choice{
+    display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid var(--line);
+    border-radius:16px; cursor:pointer; background:#fffafd; font-size:16px; font-weight:600;
+    transition:.16s; text-align:left;
+  }
+  .choice:hover{border-color:var(--brand); background:var(--soft); transform:translateY(-2px)}
+  .choice .dot{width:22px; height:22px; border-radius:50%; border:2px solid #d9c6e0; flex:none; transition:.16s; position:relative}
+  .choice.sel{border-color:var(--brand); background:var(--soft); box-shadow:0 6px 16px rgba(232,90,156,.16)}
+  .choice.sel .dot{border-color:var(--brand); background:var(--brand)}
+  .choice.sel .dot::after{content:""; position:absolute; inset:5px; background:#fff; border-radius:50%}
+  .choice .big{font-size:22px}
+
+  .errmsg{color:var(--brand-d); font-size:13.5px; margin-top:12px; font-weight:600; display:none}
+  .errmsg.show{display:block; animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  /* nav */
+  .nav{display:flex; align-items:center; gap:12px; margin-top:26px}
+  button{font:inherit; font-weight:700; border:none; border-radius:14px; cursor:pointer; transition:.16s}
+  .next{flex:1; background:linear-gradient(90deg,var(--accent),var(--brand)); color:#fff; padding:15px; font-size:16px; box-shadow:0 8px 20px rgba(232,90,156,.3)}
+  .next:hover{filter:brightness(1.05); transform:translateY(-1px)}
+  .next:active{transform:translateY(0)}
+  .back{background:transparent; color:var(--muted); padding:15px 10px; font-size:14px}
+  .back:hover{color:var(--ink)}
+  .kbd{font-size:12px; color:var(--muted); text-align:center; margin-top:12px}
+  .kbd b{background:#fff; border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-size:11px}
+
+  /* intro & done */
+  .center{text-align:center}
+  .hero-emoji{font-size:48px; margin-bottom:6px}
+  .lead{font-size:15px; color:var(--muted); line-height:1.8; margin:14px 0 0}
+  .notes{text-align:left; background:var(--soft); border-radius:16px; padding:16px 18px; margin-top:20px; font-size:13px; color:#7a6a85; line-height:1.75}
+  .notes b{color:var(--brand-d)}
+  .start{background:linear-gradient(90deg,var(--accent),var(--brand)); color:#fff; padding:16px 40px; font-size:17px; margin-top:24px; box-shadow:0 10px 24px rgba(232,90,156,.32)}
+  .start:hover{filter:brightness(1.05); transform:translateY(-2px)}
+
+  .check{width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--ok),#3fd39a); color:#fff; display:flex; align-items:center; justify-content:center; font-size:38px; margin:0 auto 14px; box-shadow:0 10px 24px rgba(34,176,122,.3)}
+  .summary{text-align:left; background:var(--soft); border-radius:16px; padding:6px 18px; margin:20px 0; max-height:300px; overflow:auto}
+  .summary .row{padding:12px 0; border-bottom:1px dashed #f0d9e6}
+  .summary .row:last-child{border:none}
+  .summary .k{font-size:12px; color:var(--brand-d); font-weight:700; margin-bottom:3px}
+  .summary .v{font-size:14px; white-space:pre-wrap; word-break:break-word}
+  .dlrow{display:flex; gap:12px; flex-wrap:wrap}
+  .dlrow button{flex:1; min-width:150px}
+  .ghost{background:#fff; color:var(--brand); border:2px solid var(--line); padding:14px}
+  .ghost:hover{background:var(--soft)}
+  .footer{text-align:center; font-size:11.5px; color:var(--muted); margin-top:16px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="topbar" id="topbar" style="visibility:hidden">
+    <span class="count" id="count">1 / 1</span>
+    <div class="track"><i id="bar"></i></div>
+  </div>
+  <div class="card anim-in" id="card"></div>
+  <div class="footer">回答内容は匿名で集計されます。送信後の修正はできませんのでご確認のうえ送信してください。</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ============================================================
+  // ▼▼▼ 管理者設定：ここにGoogle Apps ScriptのウェブアプリURLを貼る ▼▼▼
+  //   （設定手順は別紙「セットアップ手順」を参照）
+  //   未設定（空のまま）でも画面は動きますが、回答はシートに保存されません。
+  const ENDPOINT_URL = "[https://script.google.com/macros/s/AKfycbxmCCyZXPYAR8UMCpbWI_Q7Pmm9vCwNGT5Bc6C3lLkKtMy14rpx8p0dkb5IqP33sCiMrg/exec](https://script.google.com/macros/s/AKfycbxmCCyZXPYAR8UMCpbWI_Q7Pmm9vCwNGT5Bc6C3lLkKtMy14rpx8p0dkb5IqP33sCiMrg/exec)";
+  // ▲▲▲ 例： "https://script.google.com/macros/s/AKfy.../exec" ▲▲▲
+  // ============================================================
+
+  // ---- 設問定義（formrun「あなたの推し活について教えてください」を一問一答化）----
+  const QUESTIONS = [
+    {
+      id:"name", type:"name", required:true, emoji:"😊",
+      title:"まずはお名前を教えてください"
+    },
+    {
+      id:"has_oshi", type:"choice", required:true, emoji:"💖",
+      title:"あなたには推しや推し作品がありますか？",
+      hint:"IP・コンテンツ・コミュニティなどエンタメ関連",
+      options:[
+        {value:"はい", big:"🙌"},
+        {value:"いいえ", big:"🤔"}
+      ]
+    },
+    {
+      id:"oshi_detail", type:"text", required:true, emoji:"✨",
+      title:"あなたの「推し」を教えてください！",
+      hint:"ジャンル・作品名・キャラ・グループなど。複数いる方は全部どうぞ🫶",
+      placeholder:"例：◯◯（アニメ）の△△くん、□□（アイドル）の推しは…",
+      showIf:a=>a.has_oshi==="はい"
+    },
+    {
+      id:"subscriptions", type:"text", required:true, emoji:"💳",
+      title:"毎月払っているサブスクを全部教えてください",
+      hint:"推しや趣味に関連するもの。例：電子書籍、配信、ファンクラブ、ソシャゲ課金 など",
+      placeholder:"例：◯◯配信 / △△ファンクラブ / ソシャゲ□□ に毎月…"
+    },
+    {
+      id:"services", type:"text", required:true, emoji:"📱",
+      title:"よく使うサービス・アプリ・お店は？",
+      hint:"推し活に関して、その「理由」とセットで教えてください",
+      placeholder:"例：◯◯（フリマ）→グッズの取引が早い／△△（書店）→特典が手厚い"
+    },
+    {
+      id:"good_purchase", type:"text", required:true, emoji:"🎁",
+      title:"直近3ヶ月で「買ってよかった／課金してよかった」ものは？",
+      hint:"その理由もぜひ教えてください",
+      placeholder:"例：◯◯のグッズ。理由は…"
+    },
+    {
+      id:"work_gap", type:"text", required:true, emoji:"🔍",
+      title:"今の業務、ここが「足りない」「もっと面白くできる」",
+      hint:"他社やあなたがよく使うサービスと比べて感じる点を自由に",
+      placeholder:"思ったことをそのまま書いてOKです"
+    },
+    {
+      id:"envy", type:"text", required:true, emoji:"👀",
+      title:"「これ羨ましい、うちでもやりたい」と思った企画は？",
+      hint:"他社・他ジャンルのサービスや企画。具体名OK！",
+      placeholder:"例：◯◯のあのキャンペーン、△△のあの仕組み…"
+    },
+    {
+      id:"dream", type:"text", required:true, emoji:"🌈",
+      title:"お金と権限が無限にあったら、作ってみたいものは？",
+      hint:"企画・グッズ・場など、妄想レベルのアイデア大歓迎です！",
+      placeholder:"夢のプランをどうぞ✨"
+    },
+    {
+      id:"bl_distance", type:"choice", required:true, emoji:"📚",
+      title:"あなたとBLとの距離は？",
+      options:[
+        {value:"ほぼ未知", big:"🌱"},
+        {value:"たしなむ", big:"☕"},
+        {value:"ガチ", big:"🔥"}
+      ]
+    },
+    {
+      id:"bl_oshi", type:"text", required:true, emoji:"🔥",
+      title:"今いちばんお金・時間を使っているBL作品や推しを、布教する勢いで教えてください",
+      hint:"おすすめポイントや沼らせ方を、熱量そのままに語ってOKです🫶",
+      placeholder:"例：◯◯がとにかく尊い… △△は必読です！理由は…",
+      showIf:a=>a.bl_distance==="ガチ"||a.bl_distance==="たしなむ"
+    },
+    {
+      id:"bl_common", type:"text", required:true, emoji:"💡",
+      title:"BLファンには常識だけど、社内や経営陣は意外と知らなさそうなことはありますか？",
+      hint:"「これ知らないの！？」という文化・用語・お金の動き方など何でも",
+      placeholder:"例：◯◯は実は…／△△の界隈ではこれが当たり前で…",
+      showIf:a=>a.bl_distance==="ガチ"||a.bl_distance==="たしなむ"
+    },
+    {
+      id:"bl_event", type:"text", required:true, emoji:"🎪",
+      title:"TORICOのBLイベントを、さらに良くするためにやったほうがいいことは？",
+      hint:"こうしたら行きたくなる／もっと盛り上がる、というアイデアを自由に",
+      placeholder:"例：◯◯があると嬉しい／△△の導線をこう変えたら…",
+      showIf:a=>a.bl_distance==="ガチ"||a.bl_distance==="たしなむ"
+    }
+  ];
+
+  const LABELS = {
+    name:"お名前", has_oshi:"推し・推し作品の有無", oshi_detail:"推し",
+    subscriptions:"毎月のサブスク", services:"よく使うサービス・アプリ・お店",
+    good_purchase:"買ってよかったもの", work_gap:"業務で足りない/面白くできる点",
+    envy:"羨ましい他社企画", dream:"無限予算で作りたいもの",
+    bl_distance:"BLとの距離",
+    bl_oshi:"いま課金/時間を使っているBL作品・推し（布教）",
+    bl_common:"BLファンの常識（社内が知らなさそうなこと）",
+    bl_event:"TORICOのBLイベント改善アイデア"
+  };
+
+  const answers = {};
+  let idx = -1;        // -1 = intro
+  const history = [];  // 訪れた質問indexの履歴（戻る用）
+
+  const card = document.getElementById('card');
+  const topbar = document.getElementById('topbar');
+  const bar = document.getElementById('bar');
+  const countEl = document.getElementById('count');
+
+  function visibleList(){
+    return QUESTIONS.filter(q=>!q.showIf || q.showIf(answers));
+  }
+
+  function render(html){
+    card.classList.remove('anim-in');
+    void card.offsetWidth;
+    card.innerHTML = html;
+    card.classList.add('anim-in');
+  }
+
+  function updateProgress(){
+    const vis = visibleList();
+    const answeredCount = history.length; // すでに通過した質問数
+    const total = vis.length;
+    const current = Math.min(answeredCount+1, total);
+    countEl.textContent = current + ' / ' + total;
+    bar.style.width = (answeredCount/total*100) + '%';
+  }
+
+  // ---- 画面遷移 ----
+  function showIntro(){
+    topbar.style.visibility = 'hidden';
+    render(
+      '<div class="center">'+
+      '<div class="hero-emoji">💝</div>'+
+      '<h2 class="qt">あなたの推し活について<br>教えてください</h2>'+
+      '<p class="lead">あなたの「好き」が、これからのサービスづくりのヒントになります。<br>サクサク一問ずつ、楽しく答えてくださいね！</p>'+
+      '<div class="notes">'+
+      '・回答は<b>匿名で集計</b>し、個人が特定できる形で共有することはありません。<br>'+
+      '・人事評価や査定に影響することは<b>一切ありません</b>。<br>'+
+      '・「正解」は不要です。違和感やちょっとした妄想アイデアこそ大歓迎🙆<br>'+
+      '・内容によっては、後日オンラインで詳しくお話を伺うことがあります（担当の女性社員より）。'+
+      '</div>'+
+      '<button class="start" id="startBtn">はじめる →</button>'+
+      '</div>'
+    );
+    document.getElementById('startBtn').onclick = ()=>{ goNext(); };
+  }
+
+  function showQuestion(){
+    topbar.style.visibility = 'visible';
+    const q = QUESTIONS[idx];
+    let bodyHtml = '';
+
+    if(q.type==='name'){
+      bodyHtml =
+        '<div class="name-row">'+
+        '<div><label>姓</label><input type="text" id="f_sei" value="'+esc(answers._sei||'')+'" placeholder="例：山田"></div>'+
+        '<div><label>名</label><input type="text" id="f_mei" value="'+esc(answers._mei||'')+'" placeholder="例：花子"></div>'+
+        '</div>';
+    } else if(q.type==='choice'){
+      bodyHtml = '<div class="choices">'+ q.options.map(o=>{
+        const sel = answers[q.id]===o.value ? ' sel':'';
+        return '<button type="button" class="choice'+sel+'" data-val="'+esc(o.value)+'">'+
+               '<span class="dot"></span>'+(o.big?'<span class="big">'+o.big+'</span>':'')+
+               '<span>'+esc(o.value)+'</span></button>';
+      }).join('') +'</div>';
+    } else { // text
+      bodyHtml = '<textarea id="f_text" placeholder="'+esc(q.placeholder||'')+'">'+esc(answers[q.id]||'')+'</textarea>';
+    }
+
+    const reqBadge = q.required ? '<span class="req">必須</span>' : '<span class="req" style="background:#b3a4c2">任意</span>';
+    const backBtn = history.length ? '<button class="back" id="backBtn">← 戻る</button>' : '';
+
+    render(
+      '<div class="step"><span class="emoji">'+q.emoji+'</span>Q'+(history.length+1)+'</div>'+
+      '<h2 class="qt">'+esc(q.title)+reqBadge+'</h2>'+
+      (q.hint?'<p class="hint">'+esc(q.hint)+'</p>':'')+
+      '<div class="body">'+bodyHtml+'</div>'+
+      '<div class="errmsg" id="err">この質問にお答えください🙏</div>'+
+      '<div class="nav">'+backBtn+'<button class="next" id="nextBtn">'+(isLastVisible()?'回答を確認する':'次へ →')+'</button></div>'+
+      (q.type!=='choice'?'<div class="kbd"><b>Ctrl/⌘ + Enter</b> でも次へ進めます</div>':'')
+    );
+
+    // choice: クリックで選択（自動で次へ進む）
+    if(q.type==='choice'){
+      card.querySelectorAll('.choice').forEach(btn=>{
+        btn.onclick = ()=>{
+          card.querySelectorAll('.choice').forEach(b=>b.classList.remove('sel'));
+          btn.classList.add('sel');
+          answers[q.id] = btn.dataset.val;
+          setTimeout(goNext, 260);
+        };
+      });
+    }
+
+    const nextBtn = document.getElementById('nextBtn');
+    if(nextBtn) nextBtn.onclick = goNext;
+    const backBtnEl = document.getElementById('backBtn');
+    if(backBtnEl) backBtnEl.onclick = goBack;
+
+    // フォーカス & キーボード
+    const ta = document.getElementById('f_text');
+    if(ta){ ta.focus(); ta.addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter') goNext(); }); }
+    const sei = document.getElementById('f_sei');
+    if(sei){ sei.focus(); card.querySelectorAll('input').forEach(i=>i.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); goNext(); }})); }
+
+    updateProgress();
+  }
+
+  function isLastVisible(){
+    // 現在の質問が、表示対象の中で最後かどうか（分岐は次の質問で判定されるため近似）
+    for(let i=idx+1;i<QUESTIONS.length;i++){
+      const q=QUESTIONS[i];
+      if(!q.showIf || q.showIf(answers)) return false;
+    }
+    return true;
+  }
+
+  function collectCurrent(){
+    const q = QUESTIONS[idx];
+    if(q.type==='name'){
+      answers._sei = (document.getElementById('f_sei').value||'').trim();
+      answers._mei = (document.getElementById('f_mei').value||'').trim();
+      answers.name = (answers._sei+' '+answers._mei).trim();
+    } else if(q.type==='text'){
+      answers[q.id] = (document.getElementById('f_text').value||'').trim();
+    }
+    // choiceはクリック時に格納済み
+  }
+
+  function validateCurrent(){
+    const q = QUESTIONS[idx];
+    if(!q.required) return true;
+    if(q.type==='name') return !!(answers._sei && answers._mei);
+    return !!(answers[q.id] && String(answers[q.id]).length);
+  }
+
+  function flashError(){
+    const e = document.getElementById('err');
+    if(e){ e.classList.add('show'); setTimeout(()=>e.classList.remove('show'), 1200); }
+  }
+
+  function nextIndex(from){
+    for(let i=from+1;i<QUESTIONS.length;i++){
+      const q=QUESTIONS[i];
+      if(!q.showIf || q.showIf(answers)) return i;
+    }
+    return -1; // 完了
+  }
+
+  function goNext(){
+    if(idx>=0){
+      collectCurrent();
+      if(!validateCurrent()){ flashError(); return; }
+      history.push(idx);
+    }
+    const ni = nextIndex(idx);
+    if(ni===-1){ showDone(); return; }
+    idx = ni;
+    showQuestion();
+  }
+
+  function goBack(){
+    if(!history.length) return;
+    idx = history.pop();
+    showQuestion();
+  }
+
+  // ---- 完了画面 ----
+  function buildOrderedAnswers(){
+    // 表示された質問のみ、定義順で
+    const out = [];
+    QUESTIONS.forEach(q=>{
+      if(q.showIf && !q.showIf(answers)) return;
+      if(q.id in answers || q.id==='name'){
+        out.push([q.id, answers[q.id]||'']);
+      }
+    });
+    return out;
+  }
+
+  // ---- 確認 → 送信 → 完了 ----
+  function showDone(){
+    topbar.style.visibility='visible';
+    bar.style.width='100%';
+    countEl.textContent = '確認';
+    const ordered = buildOrderedAnswers();
+    const rows = ordered.map(([k,v])=>
+      '<div class="row"><div class="k">'+esc(LABELS[k]||k)+'</div><div class="v">'+esc(v||'（未回答）')+'</div></div>'
+    ).join('');
+    render(
+      '<div class="center">'+
+      '<div class="hero-emoji">📝</div>'+
+      '<h2 class="qt">内容のご確認</h2>'+
+      '<p class="lead">この内容で送信します。修正があれば「修正する」を押してください。</p>'+
+      '</div>'+
+      '<div class="summary">'+rows+'</div>'+
+      '<div class="dlrow">'+
+      '<button class="ghost" id="editBtn">修正する</button>'+
+      '<button class="next" id="sendBtn" style="flex:2">この内容で送信する</button>'+
+      '</div>'
+    );
+    document.getElementById('sendBtn').onclick = sendResponse;
+    document.getElementById('editBtn').onclick = ()=>{ if(history.length){ idx=history.pop(); showQuestion(); } };
+  }
+
+  function buildPayload(){
+    const map = Object.fromEntries(buildOrderedAnswers());
+    const headers = ['回答日時', ...QUESTIONS.map(q=>LABELS[q.id]||q.id)];
+    const ts = new Date().toLocaleString('ja-JP');
+    const row = [ts, ...QUESTIONS.map(q=> (q.id in map)? map[q.id] : '' )];
+    return {headers, row};
+  }
+
+  function sendResponse(){
+    countEl.textContent = '送信中';
+    render(
+      '<div class="center" style="padding:50px 10px">'+
+      '<div class="hero-emoji">📨</div>'+
+      '<h2 class="qt">送信しています…</h2>'+
+      '<p class="lead">少しだけお待ちください</p>'+
+      '</div>'
+    );
+
+    if(!ENDPOINT_URL){
+      // 受け口が未設定（管理者のセットアップ前）
+      console.warn('ENDPOINT_URL が未設定です。回答は保存されていません。');
+      setTimeout(()=>showThanks(true), 600);
+      return;
+    }
+
+    fetch(ENDPOINT_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, // CORSプリフライト回避
+      body: JSON.stringify(buildPayload())
+    }).then(()=>showThanks(true))
+      .catch(()=>showThanks(false));
+  }
+
+  function showThanks(ok){
+    countEl.textContent = '完了';
+    if(ok){
+      render(
+        '<div class="center" style="padding:40px 10px">'+
+        '<div class="check">✓</div>'+
+        '<h2 class="qt">ご回答ありがとうございました！</h2>'+
+        '<p class="lead">あなたの「好き」、しっかり受け取りました🫶<br>このまま画面を閉じて大丈夫です。</p>'+
+        '</div>'
+      );
+    } else {
+      render(
+        '<div class="center" style="padding:40px 10px">'+
+        '<div class="hero-emoji">😢</div>'+
+        '<h2 class="qt">送信に失敗しました</h2>'+
+        '<p class="lead">通信環境をご確認のうえ、もう一度お試しください。</p>'+
+        '<button class="next" id="retryBtn" style="margin-top:18px">もう一度送信する</button>'+
+        '</div>'
+      );
+      document.getElementById('retryBtn').onclick = sendResponse;
+    }
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  showIntro();
+})();
+</script>
+</body>
+</html>
